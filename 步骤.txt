@@ -1,0 +1,62 @@
+环境unbuntu22.0.4
+
+# 下载bundler和CMVS-PMVS
+git clone https://github.com/snavely/bundler_sfm.git
+git clone https://github.com/pmoulon/CMVS-PMVS.git
+
+# 下载SIFT
+http://www.cs.ubc.ca/~lowe/keypoints/
+
+
+# 为了编译和运行Bundler，我们需要安装如下依赖
+sudo apt-get install liblapack-dev libblas-dev minpack-dev f2c gfortran jhead imagemagick
+
+#接下来继续安装SIFT依赖
+sudo apt-get install libc6-dev-i386
+
+#编译安装sift
+cd siftDemoV4/siftDemoV4
+make
+
+#安装CMVS-PMVS依赖
+sudo apt-get install libgsl-dev libblas-dev libatlas-base-dev liblapack-dev liblapacke-dev
+
+
+# 复制sift文件到bundler_sfm文件的bin目录
+sudo cp sift /root/bundler_sfm/bin
+# jhead文件拷贝到bundler_sfm下的bin目录下
+sudo cp /usr/bin/jhead /root/bundler_sfm/bin
+# 编译bundler 
+cd /root/bundler_sfm
+make
+会生成libANN_char.so,复制到系统目录
+sudo cp bin/libANN_char.so /usr/lib/
+
+#编译CMVS-PMVS
+cd CMVS-PMVS/program/
+mkdir build && cd build
+cmake ..
+make
+
+
+#执行Bundler和CMVS-PMVS进行三维重建
+#在/bundler_sfm/examples目录下新建一个文件夹monument
+cd /bundler_sfm/examples
+mkdir monument
+
+#上传图片到monument目录
+rz
+
+#利用PMVS进行稠密点云的重建
+../../bin/Bundle2PMVS prepare/list.txt bundle/bundle.out
+
+#修改prep_pmvs.sh
+vim prep_pmvs.sh
+BUNDLER_BIN_PATH=/home/chao/AAAAAA/temp/bundler_sfm/bin
+sh pmvs/prep_pmvs.sh
+../../bin/cmvs pmvs/
+../../bin/genOption pmvs/
+../../bin/pmvs2 pmvs/ option-0000
+#生成的最终结果位于pmvs目录的models 文件夹下，名称为option-0000.ply
+
+
